@@ -8,6 +8,8 @@ cameras:
     align_depth.enable: true
     pointcloud.enable: true
     pointcloud__neon_.enable: true
+    pointcloud__neon_.stream_filter: 2
+    decimation_filter.enable: true
 
   - camera_name: right_camera
     camera_namespace: camera
@@ -15,6 +17,8 @@ cameras:
     align_depth.enable: true
     pointcloud.enable: true
     pointcloud__neon_.enable: true
+    pointcloud__neon_.stream_filter: 2
+    decimation_filter.enable: true
 
   - camera_name: left_camera
     camera_namespace: camera
@@ -22,3 +26,5 @@ cameras:
     align_depth.enable: true
     pointcloud.enable: true
     pointcloud__neon_.enable: true
+    pointcloud__neon_.stream_filter: 2
+    decimation_filter.enable: true
