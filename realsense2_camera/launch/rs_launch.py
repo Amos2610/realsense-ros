@@ -73,11 +73,12 @@ configurable_parameters = [{'name': 'camera_name',                  'default': '
                            {'name': 'diagnostics_period',           'default': '0.0', 'description': 'Rate of publishing diagnostics. 0=Disabled'},
                            {'name': 'publish_tf',                   'default': 'true', 'description': '[bool] enable/disable publishing static & dynamic TF'},
                            {'name': 'tf_publish_rate',              'default': '0.0', 'description': '[double] rate in Hz for publishing dynamic TF'},
-                           {'name': 'pointcloud.enable',            'default': 'false', 'description': ''},
+                           {'name': 'pointcloud.enable',            'default': 'true', 'description': ''},
                            {'name': 'pointcloud.stream_filter',     'default': '2', 'description': 'texture stream for pointcloud'},
                            {'name': 'pointcloud.stream_index_filter','default': '0', 'description': 'texture stream index for pointcloud'},
                            {'name': 'pointcloud.ordered_pc',        'default': 'false', 'description': ''},
                            {'name': 'pointcloud.allow_no_texture_points', 'default': 'false', 'description': "''"},
+                           {'name': 'pointcloud__neon_.enable',     'default': 'false', 'description': 'enable pointcloud (NEON)'},
                            {'name': 'align_depth.enable',           'default': 'false', 'description': 'enable align depth filter'},
                            {'name': 'colorizer.enable',             'default': 'false', 'description': 'enable colorizer filter'},
                            {'name': 'decimation_filter.enable',     'default': 'false', 'description': 'enable_decimation_filter'},
@@ -111,17 +112,27 @@ def yaml_to_dict(path_to_yaml):
     with open(path_to_yaml, "r") as f:
         return yaml.load(f, Loader=yaml.SafeLoader)
 
-def launch_setup(context, params, param_name_suffix=''):
+def launch_setup(context, params, param_name_suffix='', native_params=None):
     _config_file = LaunchConfiguration('config_file' + param_name_suffix).perform(context)
     params_from_file = {} if _config_file == "''" else yaml_to_dict(_config_file)
 
     # Get list of supported parameters
     supported_params = set(param['name'] for param in configurable_parameters)
+
+    def is_supported_launch_param(param_name):
+        if param_name in supported_params:
+            return True
+        if param_name_suffix:
+            return any(
+                param_name.startswith(param) and param_name[len(param):].isdigit()
+                for param in supported_params
+            )
+        return False
     
     # Check for unsupported parameters in command line arguments
     # Warn for any launch arguments not in supported_params
     for param_name in context.launch_configurations.keys():
-        if param_name not in supported_params:
+        if not is_supported_launch_param(param_name):
             print(f"\033[33mWarning: Parameter '{param_name}' is not supported. Supported parameters are:\n{sorted(supported_params)}\033[0m")
     
     # Check for unsupported parameters in config file
@@ -156,7 +167,7 @@ def launch_setup(context, params, param_name_suffix=''):
             namespace=LaunchConfiguration('camera_namespace' + param_name_suffix),
             name=LaunchConfiguration('camera_name' + param_name_suffix),
             executable='realsense2_camera_node',
-            parameters=[params, params_from_file],
+            parameters=[params, params_from_file] + ([native_params] if native_params else []),
             output=_output,
             arguments=['--ros-args', '--log-level', LaunchConfiguration('log_level' + param_name_suffix)],
             emulate_tty=True,

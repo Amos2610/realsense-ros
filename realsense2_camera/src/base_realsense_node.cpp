@@ -1118,15 +1118,17 @@ bool BaseRealSenseNode::fillCVMatImageAndReturnStatus(
                                    << "\nPlease try different format of this stream.");
         return false;
     }
-    // we try to reduce image creation as much we can, so we check if the same image structure
-    // was already created before, and we fill this image next with the frame data
-    // image.create() should be called once per <stream>_<profile>_<format>
-    if (image.size() != cv::Size(width, height) || CV_MAKETYPE(image.depth(), image.channels()) != _rs_format_to_cv_format[stream_format])
+
+    if (!frame.is<rs2::video_frame>())
     {
-        image.create(height, width, _rs_format_to_cv_format[stream_format]);
+        ROS_ERROR("Frame is not a video frame. Ignoring this frame.");
+        return false;
     }
 
-    image.data = (uint8_t*)frame.get_data();
+    auto video_frame = frame.as<rs2::video_frame>();
+    const size_t stride = video_frame.get_stride_in_bytes();
+    const int cv_format = _rs_format_to_cv_format[stream_format];
+    image = cv::Mat(height, width, cv_format, const_cast<void*>(frame.get_data()), stride);
 
     if (frame.is<rs2::depth_frame>())
     {

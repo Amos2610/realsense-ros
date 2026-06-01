@@ -1,0 +1,24 @@
+# Configure one entry per RealSense device.
+# Fill serial_no with each device serial number prefixed by an underscore.
+# Example: serial_no: _123456789012
+cameras:
+  - camera_name: hand_camera
+    camera_namespace: camera
+    serial_no: "819312073416"
+    align_depth.enable: true
+    pointcloud.enable: true
+    pointcloud__neon_.enable: true
+
+  - camera_name: right_camera
+    camera_namespace: camera
+    serial_no: "238222072339"
+    align_depth.enable: true
+    pointcloud.enable: true
+    pointcloud__neon_.enable: true
+
+  - camera_name: left_camera
+    camera_namespace: camera
+    serial_no: "243122070422"
+    align_depth.enable: true
+    pointcloud.enable: true
+    pointcloud__neon_.enable: true
